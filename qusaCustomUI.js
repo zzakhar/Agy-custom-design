@@ -8,6 +8,7 @@ window.__qusaInjected = true;
  */
 
 const PRESETS = [
+  { name: 'Cerber Blood & Carbon', color: '#0a090c' },
   { name: 'Оригинал', color: '#121212' },
   { name: 'OLED Чёрный', color: '#050505' },
   { name: 'Полночь', color: '#0f172a' },
@@ -21,6 +22,7 @@ const PRESETS = [
 ];
 
 const KNOWN_MODELS = [
+  'Cerber 3.8 Angry',
   'Gemini 4 Neon',
   'Gemini 4 Argon',
   'Gemini 4 Hydrogen',
@@ -456,6 +458,115 @@ function injectStyles(cfg) {
       box-shadow: none !important;
     }
     ` : '')}
+
+    /* Custom Styled Sidebar & Prompt Input Box */
+    aside, [class*="sidebar"], [class*="Sidebar"], [data-qusa-role="sidebar"] {
+      background-color: ${cfg.separateSidebar ? cfg.sidebarColor : 'rgba(14, 13, 18, 0.88)'} !important;
+      border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+      backdrop-filter: blur(12px) !important;
+    }
+    
+    /* Prompt Input Container */
+    form:has(textarea), 
+    form:has([contenteditable="true"]),
+    div:has(> textarea),
+    div:has(> [contenteditable="true"]),
+    [class*="prompt"],
+    [class*="Prompt"] {
+      background: rgba(16, 15, 20, 0.72) !important;
+      border: 1px solid rgba(255, 75, 45, 0.28) !important;
+      border-radius: 16px !important;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 0 12px rgba(220, 45, 25, 0.08) !important;
+      backdrop-filter: blur(20px) !important;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease !important;
+    }
+    
+    form:has(textarea:focus),
+    form:has([contenteditable="true"]:focus),
+    div:has(> textarea:focus),
+    div:has(> [contenteditable="true"]:focus) {
+      border-color: rgba(255, 80, 50, 0.6) !important;
+      box-shadow: 0 8px 36px rgba(0, 0, 0, 0.6), 0 0 20px rgba(230, 50, 30, 0.25) !important;
+    }
+
+    textarea, [contenteditable="true"] {
+      background: transparent !important;
+      color: #f8fafc !important;
+    }
+
+    /* Dropdown Menus, Popovers, Model Selector & Context Windows */
+    [role="menu"],
+    [role="listbox"],
+    [role="dialog"]:not(#qusa-theme-modal),
+    [data-radix-popper-content-wrapper] > div,
+    [data-radix-menu-content],
+    [data-state="open"]:not(#root):not(body),
+    [class*="popover"],
+    [class*="Popover"],
+    [class*="dropdown"],
+    [class*="Dropdown"],
+    [class*="menu-content"],
+    [class*="MenuContent"] {
+      background: rgba(14, 13, 18, 0.94) !important;
+      border: 1px solid rgba(255, 75, 45, 0.28) !important;
+      border-radius: 14px !important;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.75), 0 0 16px rgba(230, 45, 25, 0.12) !important;
+      backdrop-filter: blur(24px) !important;
+      color: #f1f5f9 !important;
+      overflow: hidden !important;
+    }
+
+    /* Menu Items & Hover Highlight */
+    [role="menuitem"],
+    [role="option"],
+    [class*="menu-item"],
+    [class*="MenuItem"],
+    [class*="dropdown-item"],
+    [class*="DropdownItem"] {
+      border-radius: 8px !important;
+      color: #cbd5e1 !important;
+      transition: background-color 0.15s ease, color 0.15s ease !important;
+    }
+
+    [role="menuitem"]:hover,
+    [role="option"]:hover,
+    [role="menuitem"][data-highlighted],
+    [role="option"][data-highlighted],
+    [class*="menu-item"]:hover,
+    [class*="dropdown-item"]:hover {
+      background: rgba(255, 65, 45, 0.16) !important;
+      color: #ffffff !important;
+    }
+
+    /* Active checkmark / selection */
+    [role="menuitem"][aria-checked="true"],
+    [role="option"][aria-selected="true"] {
+      color: #ff5540 !important;
+      font-weight: 600 !important;
+    }
+
+    /* Primary Action / Send Button (Ember Crimson instead of default blue) */
+    form button[type="submit"],
+    button[aria-label*="Send"],
+    button[aria-label*="send"],
+    button[aria-label*="Submit"],
+    form div:last-child > button:last-child:has(svg) {
+      background: linear-gradient(135deg, #ff4530, #c52515) !important;
+      color: #ffffff !important;
+      border: 1px solid rgba(255, 90, 60, 0.4) !important;
+      box-shadow: 0 2px 14px rgba(230, 40, 20, 0.35) !important;
+      transition: filter 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease !important;
+    }
+
+    form button[type="submit"]:hover,
+    button[aria-label*="Send"]:hover,
+    button[aria-label*="send"]:hover,
+    button[aria-label*="Submit"]:hover,
+    form div:last-child > button:last-child:has(svg):hover {
+      filter: brightness(1.15) !important;
+      box-shadow: 0 4px 20px rgba(255, 50, 30, 0.5) !important;
+      transform: scale(1.04) !important;
+    }
 
     /* Compact Native-Style Draggable Button */
     #qusa-style-fab {

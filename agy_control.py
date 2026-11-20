@@ -8,6 +8,7 @@ Unified CLI and MCP Server to control Antigravity UI, Wallpapers, Model Names, a
 import os
 import sys
 import json
+import base64
 import argparse
 from pathlib import Path
 
@@ -75,6 +76,14 @@ PRESETS = {
         "sidebarColor": "#050505",
         "panelContrast": 1.25,
         "panelAlpha": 0.95
+    },
+    "cerber": {
+        "colorEnabled": True,
+        "baseColor": "#0a090c",
+        "separateSidebar": True,
+        "sidebarColor": "#0f0d12",
+        "panelContrast": 1.15,
+        "panelAlpha": 0.82
     }
 }
 
@@ -119,10 +128,36 @@ def set_wallpaper(path_or_url: str, dim: float = None, blur: int = None, alpha: 
     cfg = load_config()
     target = path_or_url.strip()
 
-    # If it's a local file, convert to file:/// URI or handle
+    # If it's a local file, convert to base64 Data URI & binary cache (bypasses Chromium file:/// sandbox blocks)
     if Path(target).is_file():
         file_path = Path(target).resolve()
-        target = file_path.as_uri()
+        ext = file_path.suffix.lower()
+        mime_map = {
+            ".png": "image/png",
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".gif": "image/gif",
+            ".webp": "image/webp",
+            ".mp4": "video/mp4",
+            ".webm": "video/webm"
+        }
+        mime = mime_map.get(ext, "application/octet-stream")
+
+        try:
+            CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+            wp_bin = CONFIG_DIR / "custom-ui-wallpaper.bin"
+            wp_meta = CONFIG_DIR / "custom-ui-wallpaper.meta.json"
+            raw_bytes = file_path.read_bytes()
+            wp_bin.write_bytes(raw_bytes)
+            wp_meta.write_text(json.dumps({"name": file_path.name, "type": mime}), encoding="utf-8")
+        except Exception:
+            pass
+
+        if ext in (".jpg", ".jpeg", ".png", ".gif", ".webp") and file_path.stat().st_size < 15 * 1024 * 1024:
+            b64_data = base64.b64encode(file_path.read_bytes()).decode("ascii")
+            target = f"data:{mime};base64,{b64_data}"
+        else:
+            target = file_path.as_uri()
 
     cfg["wallpaperUrl"] = target
     if dim is not None:
@@ -472,7 +507,7 @@ def main():
     sub.add_parser("clear-wallpaper", help="Clear wallpaper")
 
     theme_parser = sub.add_parser("set-theme", help="Set color theme / preset")
-    theme_parser.add_argument("--preset", choices=["swiss", "neon", "linear", "oled"], help="Preset name")
+    theme_parser.add_argument("--preset", choices=["swiss", "neon", "linear", "oled", "cerber"], help="Preset name")
     theme_parser.add_argument("--base", help="Base color (#hex)")
     theme_parser.add_argument("--sidebar", help="Sidebar color (#hex)")
     theme_parser.add_argument("--contrast", type=float, help="Contrast ratio")
