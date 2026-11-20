@@ -1,0 +1,12 @@
+{
+  "name": "agy-custom-design",
+  "displayName": "Agy Custom Design & Chat Controller",
+  "description": "Direct chat-driven styling, wallpapers, model renamer, and mascot controller for Google Antigravity.",
+  "version": "2.0.0",
+  "suggestedPrompts": [
+    "Поставь обои на фон с блюром",
+    "Переименуй модель в Gemini 4 Neon",
+    "Включи швейцарский стиль оформления",
+    "Передай Anty сказать сообщение"
+  ]
+}

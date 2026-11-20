@@ -1844,6 +1844,7 @@ function initAntyMascot(cfg) {
       bubbleEl.classList.remove('show');
     }, ms);
   };
+  window.__qusaSay = setBubble;
 
   const setState = (state, svgKey) => {
     if (curState !== state) {
@@ -2244,6 +2245,37 @@ function initQusaCustomUI() {
       applySurfaceColors(cfg);
       applyTextTransforms(document.body, cfg);
     }, 1800);
+
+    // --- Live Hot-Reload from Disk (MCP & Antigravity Chat Control) ---
+    let lastKnownDiskConfigJson = '';
+    let lastKnownMascotMsg = '';
+    setInterval(async () => {
+      try {
+        if (window.qusaPersist && typeof window.qusaPersist.loadConfig === 'function') {
+          const diskCfg = await window.qusaPersist.loadConfig();
+          if (diskCfg && typeof diskCfg === 'object') {
+            const diskJson = JSON.stringify(diskCfg);
+            if (lastKnownDiskConfigJson && diskJson !== lastKnownDiskConfigJson) {
+              lastKnownDiskConfigJson = diskJson;
+              Object.assign(cfg, mergeConfig(diskCfg));
+              injectStyles(cfg);
+              updateWallpaperLayer(cfg);
+              applySurfaceColors(cfg);
+              applyTextTransforms(document.body, cfg);
+              if (diskCfg.mascotMessage && diskCfg.mascotMessage !== lastKnownMascotMsg && window.__qusaSay) {
+                lastKnownMascotMsg = diskCfg.mascotMessage;
+                window.__qusaSay(diskCfg.mascotMessage, 3500);
+              }
+            } else if (!lastKnownDiskConfigJson) {
+              lastKnownDiskConfigJson = diskJson;
+              if (diskCfg.mascotMessage) lastKnownMascotMsg = diskCfg.mascotMessage;
+            }
+          }
+        }
+      } catch (err) {
+        // silent
+      }
+    }, 1000);
 
     window.addEventListener('beforeunload', () => {
       saveConfig(cfg, true);
