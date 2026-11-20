@@ -193,14 +193,12 @@ def restore() -> bool:
 
 
 def trigger_restart(batch_file: Path):
-    print(f"[Installer] Spawning detached restart via {batch_file.name}...")
-    DETACHED_PROCESS = 0x00000008
-    CREATE_NEW_PROCESS_GROUP = 0x00000200
-    subprocess.Popen(
-        ["cmd.exe", "/c", str(batch_file)],
-        creationflags=DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP,
-        close_fds=True
-    )
+    ps_script = BASE_DIR / "apply_and_restart.ps1"
+    print(f"[Installer] Spawning detached restart via Task Scheduler for {ps_script.name}...")
+    task_cmd = f'powershell.exe -NoProfile -ExecutionPolicy Bypass -File "{ps_script}"'
+    subprocess.run(["schtasks", "/create", "/tn", "AgyApplyRestart", "/tr", task_cmd, "/sc", "once", "/st", "23:59", "/f"], capture_output=True)
+    subprocess.run(["schtasks", "/run", "/tn", "AgyApplyRestart"], capture_output=True)
+    subprocess.run(["schtasks", "/delete", "/tn", "AgyApplyRestart", "/f"], capture_output=True)
 
 
 def main():

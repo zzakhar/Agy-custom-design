@@ -1,4 +1,5 @@
 agcustom.zip
 assets/rei-ayanami4k-example.mp4
 *.tmp
+*.log
 __pycache__/
