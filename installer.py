@@ -192,18 +192,40 @@ def restore() -> bool:
     return True
 
 
+def trigger_restart(batch_file: Path):
+    print(f"[Installer] Spawning detached restart via {batch_file.name}...")
+    DETACHED_PROCESS = 0x00000008
+    CREATE_NEW_PROCESS_GROUP = 0x00000200
+    subprocess.Popen(
+        ["cmd.exe", "/c", str(batch_file)],
+        creationflags=DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP,
+        close_fds=True
+    )
+
+
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python installer.py [install | restore | status]")
+        print("Usage: python installer.py [install | restore | status] [--restart]")
         sys.exit(1)
 
     cmd = sys.argv[1].lower()
+    auto_restart = "--restart" in sys.argv
+
     if cmd == "status":
         print(json.dumps(check_status(), indent=2))
     elif cmd in ("install", "apply"):
+        register_mcp_server()
+        if auto_restart:
+            trigger_restart(BASE_DIR / "apply_and_restart.bat")
+            print("[Installer] Restart sequence triggered!")
+            sys.exit(0)
         ok = install()
         sys.exit(0 if ok else 1)
     elif cmd in ("restore", "uninstall"):
+        if auto_restart:
+            trigger_restart(BASE_DIR / "restore_original.bat")
+            print("[Installer] Restore & restart sequence triggered!")
+            sys.exit(0)
         ok = restore()
         sys.exit(0 if ok else 1)
     else:
